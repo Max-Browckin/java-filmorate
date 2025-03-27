@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
-import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class FilmControllerTest {
@@ -18,24 +19,23 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_ValidFilm_ReturnsFilmWithId() {
+    void addValidFilm() {
         Film film = new Film();
         film.setName("Valid Film");
-        film.setDescription("Valid description");
+        film.setDescription("Valid Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
-        Film result = filmController.addFilm(film);
-
-        assertNotNull(result.getId());
-        assertEquals(film.getName(), result.getName());
+        Film addedFilm = filmController.addFilm(film);
+        assertNotNull(addedFilm.getId());
+        assertEquals(1, filmController.getAllFilms().size());
     }
 
     @Test
-    void addFilm_EmptyName_ThrowsValidationException() {
+    void addFilmWithEmptyName() {
         Film film = new Film();
         film.setName("");
-        film.setDescription("Valid description");
+        film.setDescription("Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
@@ -43,10 +43,10 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_TooLongDescription_ThrowsValidationException() {
+    void addFilmWithLongDescription() {
         Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("a".repeat(201));
+        film.setName("Name");
+        film.setDescription("A".repeat(201));
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
@@ -54,10 +54,10 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_TooEarlyReleaseDate_ThrowsValidationException() {
+    void addFilmWithEarlyReleaseDate() {
         Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("Valid description");
+        film.setName("Name");
+        film.setDescription("Description");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
         film.setDuration(120);
 
@@ -65,22 +65,22 @@ class FilmControllerTest {
     }
 
     @Test
-    void addFilm_NegativeDuration_ThrowsValidationException() {
+    void addFilmWithNegativeDuration() {
         Film film = new Film();
-        film.setName("Valid Film");
-        film.setDescription("Valid description");
+        film.setName("Name");
+        film.setDescription("Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(-1);
+        film.setDuration(-120);
 
         assertThrows(ValidationException.class, () -> filmController.addFilm(film));
     }
 
     @Test
-    void updateFilm_NonExistingId_ThrowsValidationException() {
+    void updateFilmWithInvalidId() {
         Film film = new Film();
         film.setId(999L);
-        film.setName("Valid Film");
-        film.setDescription("Valid description");
+        film.setName("Name");
+        film.setDescription("Description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
         film.setDuration(120);
 
@@ -88,26 +88,22 @@ class FilmControllerTest {
     }
 
     @Test
-    void getAllFilms_EmptyList_ReturnsEmptyList() {
-        List<Film> films = filmController.getAllFilms();
-        assertTrue(films.isEmpty());
-    }
+    void getAllFilms() {
+        Film film1 = createTestFilm("Film 1");
+        Film film2 = createTestFilm("Film 2");
 
-    @Test
-    void getAllFilms_WithFilms_ReturnsAllFilms() {
-        Film film1 = new Film();
-        film1.setName("Film 1");
-        film1.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film1.setDuration(120);
         filmController.addFilm(film1);
-
-        Film film2 = new Film();
-        film2.setName("Film 2");
-        film2.setReleaseDate(LocalDate.of(2001, 1, 1));
-        film2.setDuration(90);
         filmController.addFilm(film2);
 
-        List<Film> films = filmController.getAllFilms();
-        assertEquals(2, films.size());
+        assertEquals(2, filmController.getAllFilms().size());
+    }
+
+    private Film createTestFilm(String name) {
+        Film film = new Film();
+        film.setName(name);
+        film.setDescription("Description");
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+        film.setDuration(120);
+        return film;
     }
 }

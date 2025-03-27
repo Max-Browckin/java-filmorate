@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +41,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         validateFilm(film);
         film.setId(idCounter++);
         films.put(film.getId(), film);
@@ -48,7 +50,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         if (film.getId() == null || !films.containsKey(film.getId())) {
             log.warn("Фильм с ID {} не найден", film.getId());
             throw new ValidationException("Фильм с указанным ID не существует");

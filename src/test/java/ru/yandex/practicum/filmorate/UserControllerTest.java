@@ -1,12 +1,13 @@
 package ru.yandex.practicum.filmorate;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
 import java.time.LocalDate;
-import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest {
@@ -18,42 +19,42 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser_ValidUser_ReturnsUserWithId() {
+    void createValidUser() {
         User user = new User();
-        user.setEmail("test@example.com");
+        user.setEmail("test@mail.com");
         user.setLogin("testlogin");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
-        User result = userController.createUser(user);
-
-        assertNotNull(result.getId());
-        assertEquals(user.getEmail(), result.getEmail());
+        User createdUser = userController.createUser(user);
+        assertNotNull(createdUser.getId());
+        assertEquals("testlogin", createdUser.getName());
+        assertEquals(1, userController.getAllUsers().size());
     }
 
     @Test
-    void createUser_EmptyEmail_ThrowsValidationException() {
+    void createUserWithEmptyEmail() {
         User user = new User();
         user.setEmail("");
-        user.setLogin("testlogin");
+        user.setLogin("login");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
         assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
-    void createUser_InvalidEmailFormat_ThrowsValidationException() {
+    void createUserWithInvalidEmail() {
         User user = new User();
         user.setEmail("invalid-email");
-        user.setLogin("testlogin");
+        user.setLogin("login");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
         assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
-    void createUser_EmptyLogin_ThrowsValidationException() {
+    void createUserWithEmptyLogin() {
         User user = new User();
-        user.setEmail("test@example.com");
+        user.setEmail("test@mail.com");
         user.setLogin("");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
@@ -61,69 +62,52 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser_LoginWithSpaces_ThrowsValidationException() {
+    void createUserWithLoginContainingSpaces() {
         User user = new User();
-        user.setEmail("test@example.com");
-        user.setLogin("test login");
+        user.setEmail("test@mail.com");
+        user.setLogin("login with spaces");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
         assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
-    void createUser_EmptyName_SetsNameFromLogin() {
+    void createUserWithFutureBirthday() {
         User user = new User();
-        user.setEmail("test@example.com");
-        user.setLogin("testlogin");
-        user.setName("");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-
-        User result = userController.createUser(user);
-        assertEquals(user.getLogin(), result.getName());
-    }
-
-    @Test
-    void createUser_FutureBirthday_ThrowsValidationException() {
-        User user = new User();
-        user.setEmail("test@example.com");
-        user.setLogin("testlogin");
+        user.setEmail("test@mail.com");
+        user.setLogin("login");
         user.setBirthday(LocalDate.now().plusDays(1));
 
         assertThrows(ValidationException.class, () -> userController.createUser(user));
     }
 
     @Test
-    void updateUser_NonExistingId_ThrowsValidationException() {
+    void updateUserWithInvalidId() {
         User user = new User();
         user.setId(999L);
-        user.setEmail("test@example.com");
-        user.setLogin("testlogin");
+        user.setEmail("test@mail.com");
+        user.setLogin("login");
         user.setBirthday(LocalDate.of(1990, 1, 1));
 
         assertThrows(ValidationException.class, () -> userController.updateUser(user));
     }
 
     @Test
-    void getAllUsers_EmptyList_ReturnsEmptyList() {
-        List<User> users = userController.getAllUsers();
-        assertTrue(users.isEmpty());
-    }
+    void getAllUsers() {
+        User user1 = createTestUser("user1@mail.com", "user1");
+        User user2 = createTestUser("user2@mail.com", "user2");
 
-    @Test
-    void getAllUsers_WithUsers_ReturnsAllUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setLogin("user1");
-        user1.setBirthday(LocalDate.of(1990, 1, 1));
         userController.createUser(user1);
-
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setLogin("user2");
-        user2.setBirthday(LocalDate.of(1991, 1, 1));
         userController.createUser(user2);
 
-        List<User> users = userController.getAllUsers();
-        assertEquals(2, users.size());
+        assertEquals(2, userController.getAllUsers().size());
+    }
+
+    private User createTestUser(String email, String login) {
+        User user = new User();
+        user.setEmail(email);
+        user.setLogin(login);
+        user.setBirthday(LocalDate.of(1990, 1, 1));
+        return user;
     }
 }
