@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +19,11 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+    public UserController() {
+        this.userService = new UserService(new InMemoryUserStorage());
+    }
+
+    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -43,7 +51,18 @@ public class UserController {
     public User updateUser(@Valid @RequestBody User user) {
         log.info("Updating user: {}", user);
         validateUser(user);
-        return userService.updateUser(user);
+        try {
+            return userService.updateUser(user);
+        } catch (NotFoundException e) {
+            log.warn("User not found: {}", user.getId());
+            throw new ValidationException("User not found");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        log.info("Deleting user with id {}", id);
+        userService.removeUser(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -71,6 +90,9 @@ public class UserController {
     }
 
     private void validateUser(User user) {
+        if (user == null) {
+            throw new ValidationException("User cannot be null");
+        }
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.warn("Email is invalid");
             throw new ValidationException("Email is invalid");
@@ -84,8 +106,9 @@ public class UserController {
             log.info("Name set to login for user {}", user.getLogin());
         }
         if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Birthday is in the future");
+            log.warn("Birthday is invalid");
             throw new ValidationException("Birthday is invalid");
         }
     }
 }
+

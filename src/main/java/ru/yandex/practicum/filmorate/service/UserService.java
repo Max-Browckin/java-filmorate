@@ -30,6 +30,10 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
+    public void removeUser(Long id) {
+        userStorage.removeUser(id);
+    }
+
     public void addFriend(Long userId, Long friendId) {
         userStorage.addFriend(userId, friendId);
     }

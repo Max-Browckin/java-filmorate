@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,6 +19,11 @@ import java.util.List;
 public class FilmController {
     private final FilmService filmService;
 
+    public FilmController() {
+        this.filmService = new FilmService(new InMemoryFilmStorage());
+    }
+
+    @Autowired
     public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
@@ -43,7 +51,12 @@ public class FilmController {
     public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Updating film: {}", film);
         validateFilm(film);
-        return filmService.updateFilm(film);
+        try {
+            return filmService.updateFilm(film);
+        } catch (NotFoundException e) {
+            log.warn("Film not found: {}", film.getId());
+            throw new ValidationException("Film not found");
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -71,6 +84,9 @@ public class FilmController {
     }
 
     private void validateFilm(Film film) {
+        if (film == null) {
+            throw new ValidationException("Film cannot be null");
+        }
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Film name is invalid");
             throw new ValidationException("Film name is invalid");
@@ -89,3 +105,4 @@ public class FilmController {
         }
     }
 }
+
