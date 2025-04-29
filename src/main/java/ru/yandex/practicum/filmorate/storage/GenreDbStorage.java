@@ -46,7 +46,7 @@ public class GenreDbStorage {
         Map<Long, List<Genre>> map = new HashMap<>();
         jdbc.query(con -> {
             var ps = con.prepareStatement(sql);
-            for (int i = 0; i < filmIds.size(); i++) ps.setLong(i+1, filmIds.get(i));
+            for (int i = 0; i < filmIds.size(); i++) ps.setLong(i + 1, filmIds.get(i));
             return ps;
         }, rs -> {
             long fid = rs.getLong("film_id");
