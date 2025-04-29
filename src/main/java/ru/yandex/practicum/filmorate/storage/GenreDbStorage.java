@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-
 @Repository
 @RequiredArgsConstructor
 public class GenreDbStorage {
@@ -39,8 +38,9 @@ public class GenreDbStorage {
     public Map<Long, List<Genre>> getGenresForFilms(List<Long> filmIds) {
         if (filmIds.isEmpty()) return Collections.emptyMap();
         String placeholders = String.join(",", Collections.nCopies(filmIds.size(), "?"));
-        String sql = "SELECT fg.film_id, g.id, g.name FROM film_genres fg " +
-                "JOIN genres g ON fg.genre_id = g.id " +
+        String sql = "SELECT fg.film_id, g.id, g.name " +
+                "FROM genres g " +
+                "JOIN film_genres fg ON g.id = fg.genre_id " +
                 "WHERE fg.film_id IN (" + placeholders + ") " +
                 "ORDER BY fg.film_id, g.id";
         Map<Long, List<Genre>> map = new HashMap<>();
